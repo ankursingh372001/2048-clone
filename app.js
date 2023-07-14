@@ -2,33 +2,57 @@ import GameBoard from "./GameBoard.js";
 import Tile from "./Tile.js";
 
 const gameBoardElement = document.getElementById("game-board");
-
 const gameBoard = new GameBoard(gameBoardElement);
-gameBoard.setGameBoardDimensions();
-gameBoard.createCells();
 
 gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
-
-function setupInput() {
-	// wait for the animation to finish first
-	// that is why once.
-	window.addEventListener("keydown", handleInput, { once: true });
-}
-
-function handleInput(e) {
-	if (e.key === "ArrowUp") gameBoard.moveUp();
-	else if (e.key === "ArrowDown") gameBoard.moveDown();
-	else if (e.key === "ArrowLeft") gameBoard.moveLeft();
-	else if (e.key === "ArrowRight") gameBoard.moveRight();
-
-	// other code
-	// let emptyCell = gameBoard.getRandomEmptyCell();
-
-	// if (emptyCell == null) confirm("game over");
-	// else emptyCell.tile = new Tile(gameBoardElement);
-
-	setupInput();
-}
 
 setupInput();
+
+function handleInput(e) {
+	if (e.key === "ArrowUp") {
+		if (gameBoard.canSlideUp()) {
+			setupInput();
+			return;
+		}
+
+		gameBoard.moveUp();
+	} else if (e.key === "ArrowDown") {
+		if (!gameBoard.canSlideDown()) {
+			setupInput();
+			return;
+		}
+
+		gameBoard.moveDown();
+	} else if (e.key === "ArrowLeft") {
+		if (!gameBoard.canSlideLeft()) {
+			setupInput();
+			return;
+		}
+
+		gameBoard.moveLeft();
+	} else if (e.key === "ArrowRight") {
+		if (!gameBoard.canSlideRight()) {
+			setupInput();
+			return;
+		}
+
+		gameBoard.moveRight();
+	}
+
+	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
+
+	document.querySelector("#current-score").querySelector(".score-value").textContent = gameBoard.currentScore;
+
+	if (!gameBoard.canSlideUp() && !gameBoard.canSlideDown() && !gameBoard.canSlideLeft() && !gameBoard.canSlideRight()) {
+		alert("game over");
+	} else {
+		setupInput();
+	}
+}
+
+function setupInput() {
+	// add even listener only once
+	// because once a key is pressed do not perform any action on any other key press unless all animations and calculations are finished.
+	window.addEventListener("keydown", handleInput, { once: true });
+}

@@ -2,20 +2,20 @@ import Tile from "./Tile.js";
 
 export default class Cell {
 	#cellElement;
-	#tile;
 	#row;
 	#col;
+	#newTile;
+	#tile;
 
 	constructor(gameBoardElement, row, col) {
 		// create a cell
-		const cellElement = document.createElement("div");
-		cellElement.classList.add("cell");
+		this.#cellElement = document.createElement("div");
+		this.#cellElement.classList.add("cell");
 
 		// add cell element to gameboard
-		gameBoardElement.appendChild(cellElement);
+		gameBoardElement.appendChild(this.#cellElement);
 
 		// add some properties to cell
-		this.#cellElement = cellElement;
 		this.#row = row;
 		this.#col = col;
 		this.#tile = null;

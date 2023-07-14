@@ -7,9 +7,15 @@ export default class GameBoard {
 	#cellSize;
 	#cellGap;
 	#cells;
+	#currentScore;
+	#bestScore;
 
 	constructor(gameBoardElement) {
 		this.#gameBoardElement = gameBoardElement;
+		this.#currentScore = 0;
+		this.#bestScore = 0;
+		this.setGameBoardDimensions();
+		this.createCells();
 	}
 
 	setGameBoardDimensions() {
@@ -42,6 +48,10 @@ export default class GameBoard {
 		this.#cells = cells;
 	}
 
+	get currentScore() {
+		return this.#currentScore;
+	}
+
 	getRandomEmptyCell() {
 		let m = this.#gridSize;
 		let n = this.#gridSize;
@@ -63,26 +73,42 @@ export default class GameBoard {
 		return emptycells[randomIndex];
 	}
 
-	moveLeft() {
+	// it will check if it is possible to slide any tile to left
+	canSlide(cells) {
+		const n = this.#gridSize;
+
+		for (let r = 0; r < n; ++r) {
+			for (let c = 1; c < n; ++c) {
+				if (cells[r][c].tile == null) continue;
+				if (cells[r][c - 1].tile === null) return true;
+				if (cells[r][c - 1].tile.data === cells[r][c].tile.data) return true;
+			}
+		}
+
+		return false;
+	}
+
+	canSlideLeft() {
 		const cells = this.rotateGameBoard(this.#cells, 0);
-		this.moveTiles(cells);
+		return this.canSlide(cells);
 	}
 
-	moveDown() {
+	canSlideDown() {
 		const cells = this.rotateGameBoard(this.#cells, 1);
-		this.moveTiles(cells);
+		return this.canSlide(cells);
 	}
 
-	moveRight() {
+	canSlideRight() {
 		const cells = this.rotateGameBoard(this.#cells, 2);
-		this.moveTiles(cells);
+		return this.canSlide(cells);
 	}
 
-	moveUp() {
+	canSlideUp() {
 		const cells = this.rotateGameBoard(this.#cells, 3);
-		this.moveTiles(cells);
+		return this.canSlide(cells);
 	}
 
+	// it will move tiles to left
 	moveTiles(cells) {
 		const m = this.#gridSize;
 		const n = this.#gridSize;
@@ -132,43 +158,29 @@ export default class GameBoard {
 		// if you are moving the tile to a cell with same data
 		let data = newCell.tile.data + oldCell.tile.data;
 		newCell.tile.data = data;
+		this.#currentScore += data;
 		oldCell.tile.tileElement.remove();
 		oldCell.tile = null;
 	}
 
-	canSlideLeft() {
+	moveLeft() {
 		const cells = this.rotateGameBoard(this.#cells, 0);
-		return this.canSlide(cells);
+		this.moveTiles(cells);
 	}
 
-	canSlideDown() {
+	moveDown() {
 		const cells = this.rotateGameBoard(this.#cells, 1);
-		return this.canSlide(cells);
+		this.moveTiles(cells);
 	}
 
-	canSlideRight() {
+	moveRight() {
 		const cells = this.rotateGameBoard(this.#cells, 2);
-		return this.canSlide(cells);
+		this.moveTiles(cells);
 	}
 
-	canSlideUp() {
+	moveUp() {
 		const cells = this.rotateGameBoard(this.#cells, 3);
-		return this.canSlide(cells);
-	}
-
-	// this method will only work when you are seeing gameboard from left
-	canSlide(cells) {
-		const n = this.#gridSize;
-
-		for (let c = 1; c < n; ++c) {
-			for (let r = 0; r < n; ++r) {
-				if (cells[r][c] === null) continue;
-				if (cells[r][c - 1].tile === null) return true;
-				if (cells[r][c - 1].tile.data === cells[r][c].tile.data) return true;
-			}
-		}
-
-		return false;
+		this.moveTiles(cells);
 	}
 
 	// rotate gameboard by 90 degrees * count times clockwise
