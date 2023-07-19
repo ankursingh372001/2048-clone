@@ -4,8 +4,8 @@ import Tile from "./Tile.js";
 export default class GameBoard {
 	#gameBoardElement;
 	#gridSize;
-	#cellSize;
-	#cellGap;
+	// #cellSize;
+	// #cellGap;
 	#cells;
 	#currentScore;
 	#bestScore;
@@ -20,12 +20,12 @@ export default class GameBoard {
 
 	setGameBoardDimensions() {
 		this.#gridSize = 4;
-		this.#cellSize = 15;
-		this.#cellGap = 2;
+		// this.#cellSize = 15;
+		// this.#cellGap = 2;
 
 		this.#gameBoardElement.style.setProperty("--grid-size", this.#gridSize);
-		this.#gameBoardElement.style.setProperty("--cell-size", `${this.#cellSize}vmin`);
-		this.#gameBoardElement.style.setProperty("--cell-gap", `${this.#cellGap}vmin`);
+		// this.#gameBoardElement.style.setProperty("--cell-size", `${this.#cellSize}vmin`);
+		// this.#gameBoardElement.style.setProperty("--cell-gap", `${this.#cellGap}vmin`);
 	}
 
 	createCells() {
