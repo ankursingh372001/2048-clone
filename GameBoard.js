@@ -4,8 +4,6 @@ import Tile from "./Tile.js";
 export default class GameBoard {
 	#gameBoardElement;
 	#gridSize;
-	// #cellSize;
-	// #cellGap;
 	#cells;
 	#currentScore;
 	#bestScore;
@@ -13,59 +11,33 @@ export default class GameBoard {
 	constructor(gameBoardElement) {
 		this.#gameBoardElement = gameBoardElement;
 		this.#currentScore = 0;
-		this.#bestScore = 0;
-		this.setGameBoardDimensions();
-		this.createCells();
-	}
-
-	setGameBoardDimensions() {
+		this.#bestScore = 0; // fetch this data from local storage
 		this.#gridSize = 4;
-		// this.#cellSize = 15;
-		// this.#cellGap = 2;
 
-		this.#gameBoardElement.style.setProperty("--grid-size", this.#gridSize);
-		// this.#gameBoardElement.style.setProperty("--cell-size", `${this.#cellSize}vmin`);
-		// this.#gameBoardElement.style.setProperty("--cell-gap", `${this.#cellGap}vmin`);
-	}
+		/* create cells */
+		this.#cells = [];
 
-	createCells() {
-		const gameBoardElement = this.#gameBoardElement;
-		let m = this.#gridSize;
-		let n = this.#gridSize;
-
-		const cells = [];
-
-		for (let r = 0; r < m; ++r) {
+		for (let r = 0; r < this.#gridSize; ++r) {
 			const cellRow = [];
 
-			for (let c = 0; c < n; ++c) {
-				cellRow.push(new Cell(gameBoardElement, r, c));
+			for (let c = 0; c < this.#gridSize; ++c) {
+				cellRow.push(new Cell(this.#gameBoardElement, r, c));
 			}
 
-			cells.push(cellRow);
+			this.#cells.push(cellRow);
 		}
-
-		this.#cells = cells;
 	}
 
 	get currentScore() {
 		return this.#currentScore;
 	}
 
+	get bestScore() {
+		return this.#bestScore;
+	}
+
 	getRandomEmptyCell() {
-		let m = this.#gridSize;
-		let n = this.#gridSize;
-		const cells = this.#cells;
-
-		const emptycells = [];
-
-		for (let i = 0; i < m; ++i) {
-			for (let j = 0; j < n; ++j) {
-				if (cells[i][j].tile == null) {
-					emptycells.push(cells[i][j]);
-				}
-			}
-		}
+		const emptycells = [].concat(...this.#cells).filter(cell => cell.tile == null);
 
 		if (emptycells.length == 0) return null;
 
@@ -73,12 +45,10 @@ export default class GameBoard {
 		return emptycells[randomIndex];
 	}
 
-	// it will check if it is possible to slide any tile to left
-	canSlide(cells) {
-		const n = this.#gridSize;
-
-		for (let r = 0; r < n; ++r) {
-			for (let c = 1; c < n; ++c) {
+	// Description = it will check if it is possible to slide at least one tile to left
+	canSlideUtil(cells) {
+		for (let r = 0; r < this.#gridSize; ++r) {
+			for (let c = 1; c < this.#gridSize; ++c) {
 				if (cells[r][c].tile == null) continue;
 				if (cells[r][c - 1].tile === null) return true;
 				if (cells[r][c - 1].tile.data === cells[r][c].tile.data) return true;
@@ -90,22 +60,22 @@ export default class GameBoard {
 
 	canSlideLeft() {
 		const cells = this.rotateGameBoard(this.#cells, 0);
-		return this.canSlide(cells);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideDown() {
 		const cells = this.rotateGameBoard(this.#cells, 1);
-		return this.canSlide(cells);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideRight() {
 		const cells = this.rotateGameBoard(this.#cells, 2);
-		return this.canSlide(cells);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideUp() {
 		const cells = this.rotateGameBoard(this.#cells, 3);
-		return this.canSlide(cells);
+		return this.canSlideUtil(cells);
 	}
 
 	// it will move tiles to left
@@ -143,6 +113,31 @@ export default class GameBoard {
 				if (C == c) continue;
 
 				this.slideTile(cells[r][c], cells[r][C]);
+			}
+		}
+	}
+
+	// Description = it will move or merge tiles to left
+	slideTilesUtil(cells) {
+		for (let r = 0; r < this.#gridSize; ++r) {
+			for (let c = 0; c < this.#gridSize; ++c) {
+				for (let c1 = c + 1; c1 < this.#gridSize; ++c1) {
+					if (cells[r][c1].tile == null) continue;
+
+					if (cells[r][c].tile == null) {
+						cells[r][c].tile = cells[r][c1].tile;
+						cells[r][c1].tile = null;
+					} else if (cells[r][c].tile.data == cells[r][c1].tile.data) {
+						let temp = cells[r][c].tile.tileElement;
+						cells[r][c].tile = cells[r][c1].tile;
+						cells[r][c].tile.data *= 2;
+						cells[r][c1].tile = null;
+						this.#currentScore += cells[r][c].tile.data;
+						temp.remove();
+					}
+
+					break;
+				}
 			}
 		}
 	}

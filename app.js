@@ -11,7 +11,7 @@ setupInput();
 
 function handleInput(e) {
 	if (e.key === "ArrowUp") {
-		if (gameBoard.canSlideUp()) {
+		if (!gameBoard.canSlideUp()) {
 			setupInput();
 			return;
 		}

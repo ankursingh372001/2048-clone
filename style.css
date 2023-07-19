@@ -118,8 +118,6 @@ body {
 	border-radius: 10px;
 }
 
-/* TILE */
-
 .tile {
 	width: var(--cell-size);
 	height: var(--cell-size);
