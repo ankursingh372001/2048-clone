@@ -56,3 +56,11 @@ function setupInput() {
 	// because once a key is pressed do not perform any action on any other key press unless all animations and calculations are finished.
 	window.addEventListener("keydown", handleInput, { once: true });
 }
+
+const newGameBtnElement = document.querySelector("button.restart-button");
+newGameBtnElement.addEventListener("click", () => {
+	gameBoard.initNewGame();
+	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
+	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
+	setupInput();
+});

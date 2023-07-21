@@ -5,13 +5,32 @@ export default class GameBoard {
 	#gameBoardElement;
 	#gridSize;
 	#cells;
+	#currentScoreElement;
 	#currentScore;
+	#bestScoreElement;
 	#bestScore;
 
 	constructor(gameBoardElement) {
+		// set current score value from local storage
+		if (localStorage.getItem("currentScore") == null) {
+			localStorage.setItem("currentScore", 0);
+		}
+
+		this.#currentScore = parseInt(localStorage.getItem("currentScore"));
+		this.#currentScoreElement = document.querySelector("#current-score .score-value");
+		this.#currentScoreElement.textContent = this.#currentScore;
+
+		// set best score value from local storage
+		if (localStorage.getItem("bestScore") == null) {
+			localStorage.setItem("bestScore", 0);
+		}
+
+		this.#bestScore = parseInt(localStorage.getItem("bestScore"));
+		this.#bestScoreElement = document.querySelector("#best-score .score-value");
+		this.#bestScoreElement.textContent = this.#bestScore;
+
+		// initalize gameboard dimensions and add cells to gameboard
 		this.#gameBoardElement = gameBoardElement;
-		this.#currentScore = 0;
-		this.#bestScore = 0; // fetch this data from local storage
 		this.#gridSize = 4;
 
 		/* create cells */
@@ -28,14 +47,7 @@ export default class GameBoard {
 		}
 	}
 
-	get currentScore() {
-		return this.#currentScore;
-	}
-
-	get bestScore() {
-		return this.#bestScore;
-	}
-
+	// Description = get a random empty cell
 	getRandomEmptyCell() {
 		const emptycells = [].concat(...this.#cells).filter(cell => cell.tile == null);
 
@@ -43,6 +55,22 @@ export default class GameBoard {
 
 		const randomIndex = Math.floor(Math.random() * emptycells.length);
 		return emptycells[randomIndex];
+	}
+
+	// Description = initialize new game when user clicks on new game button
+	initNewGame() {
+		localStorage.setItem("currentScore", 0);
+		this.#currentScore = parseInt(localStorage.getItem("currentScore"));
+		this.#currentScoreElement.textContent = this.#currentScore;
+
+		for (let r = 0; r < this.#gridSize; ++r) {
+			for (let c = 0; c < this.#gridSize; ++c) {
+				if (this.#cells[r][c].tile) {
+					this.#cells[r][c].tile.tileElement.remove();
+					this.#cells[r][c].tile = null;
+				}
+			}
+		}
 	}
 
 	// Description = it will check if it is possible to slide at least one tile to left
