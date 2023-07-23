@@ -1,50 +1,61 @@
 import Cell from "./Cell.js";
-import Tile from "./Tile.js";
 
 export default class GameBoard {
 	#gameBoardElement;
+	#currentScoreElement;
+	#bestScoreElement;
 	#gridSize;
 	#cells;
-	#currentScoreElement;
 	#currentScore;
-	#bestScoreElement;
 	#bestScore;
 
-	constructor(gameBoardElement) {
-		// set current score value from local storage
-		if (localStorage.getItem("currentScore") == null) {
-			localStorage.setItem("currentScore", 0);
-		}
-
-		this.#currentScore = parseInt(localStorage.getItem("currentScore"));
+	constructor() {
+		// store reference of required html elements
+		this.#gameBoardElement = document.getElementById("game-board");
 		this.#currentScoreElement = document.querySelector("#current-score .score-value");
+		this.#bestScoreElement = document.querySelector("#best-score .score-value");
+
+		// set gameboard dimension and create cells
+		this.#gridSize = 4;
+		this.createCells();
+
+		// set current score from local storage
+		this.#currentScore = this.getScoreFromLocalStorage("currentScore");
 		this.#currentScoreElement.textContent = this.#currentScore;
 
-		// set best score value from local storage
-		if (localStorage.getItem("bestScore") == null) {
-			localStorage.setItem("bestScore", 0);
-		}
-
-		this.#bestScore = parseInt(localStorage.getItem("bestScore"));
-		this.#bestScoreElement = document.querySelector("#best-score .score-value");
+		// set best score from local storage
+		this.#bestScore = this.getScoreFromLocalStorage("bestScore");
 		this.#bestScoreElement.textContent = this.#bestScore;
+	}
 
-		// initalize gameboard dimensions and add cells to gameboard
-		this.#gameBoardElement = gameBoardElement;
-		this.#gridSize = 4;
-
-		/* create cells */
-		this.#cells = [];
+	// Descripttion = create cells
+	createCells() {
+		this.#cells = Array.from(Array(this.#gridSize), () => new Array(this.#gridSize));
 
 		for (let r = 0; r < this.#gridSize; ++r) {
-			const cellRow = [];
-
 			for (let c = 0; c < this.#gridSize; ++c) {
-				cellRow.push(new Cell(this.#gameBoardElement, r, c));
+				this.#cells[r][c] = new Cell(this.#gameBoardElement, r, c);
 			}
-
-			this.#cells.push(cellRow);
 		}
+	}
+
+	// Description = get score from local storage
+	getScoreFromLocalStorage(key) {
+		if (localStorage.getItem(key) == null) {
+			localStorage.setItem(key, 0);
+		}
+
+		return parseInt(localStorage.getItem(key));
+	}
+
+	// Description = set score in local storage
+	setScoreInLocalStorage(key, value) {
+
+		if(localStorage.getItem(key) == null) {
+			localStorage.setItem(key) = 0;
+		}
+
+		localStorage.setItem(key, toString(value));
 	}
 
 	// Description = get a random empty cell
@@ -108,14 +119,14 @@ export default class GameBoard {
 
 	// it will move tiles to left
 	moveTiles(cells) {
-		const m = this.#gridSize;
 		const n = this.#gridSize;
 
-		for (let r = 0; r < m; ++r) {
-			// from column 0 to t - 1 you cannot merge any tiles
-			let t = 0;
+		for (let r = 0; r < this.#gridSize; ++r) {
+			
+			let t = 0; // from column 0 to t - 1 you cannot merge any tiles
 
 			for (let c = 1; c < n; ++c) {
+
 				if (cells[r][c].tile == null) continue;
 
 				let C = c; // column number of cell where current tile can be moved
@@ -145,27 +156,37 @@ export default class GameBoard {
 		}
 	}
 
-	// Description = it will move or merge tiles to left
-	slideTilesUtil(cells) {
+	moveTilesMethodUpdate(cells) {
+
 		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 0; c < this.#gridSize; ++c) {
-				for (let c1 = c + 1; c1 < this.#gridSize; ++c1) {
-					if (cells[r][c1].tile == null) continue;
+			
+			for (let c = 1; c < this.#gridSize.size(); ++c) {
 
-					if (cells[r][c].tile == null) {
-						cells[r][c].tile = cells[r][c1].tile;
-						cells[r][c1].tile = null;
-					} else if (cells[r][c].tile.data == cells[r][c1].tile.data) {
-						let temp = cells[r][c].tile.tileElement;
-						cells[r][c].tile = cells[r][c1].tile;
-						cells[r][c].tile.data *= 2;
-						cells[r][c1].tile = null;
-						this.#currentScore += cells[r][c].tile.data;
-						temp.remove();
+				if (cells[r][c].tile == null) continue;
+
+				let newColumn = c; // stores new column index of current tile
+				let willSlide = false; // stores will current tile will slide 
+				let willMerge = false; // stores will current tile will merge with another tile
+				
+				for(let t = c - 1; t >= 0; --t) {
+					
+					if(cells[r][t].tile == null) {
+						newColumn = t;
+						willSlide = true;
 					}
+					else if(cells[r][t].newTile == null && cells[r][t].tile.data == cells[r][c].tile.data) {
 
-					break;
+						newColumn = t;
+						willSlide = true;
+						willMerge = true;
+					}
+					else {
+
+						break;
+					}
 				}
+
+				this.slideTile(cells[r][c], cells[r][newColumn]);
 			}
 		}
 	}

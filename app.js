@@ -1,9 +1,9 @@
 import GameBoard from "./GameBoard.js";
 import Tile from "./Tile.js";
 
-const gameBoardElement = document.getElementById("game-board");
-const gameBoard = new GameBoard(gameBoardElement);
+const gameBoard = new GameBoard();
 
+const gameBoardElement = document.getElementById("game-board");
 gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 

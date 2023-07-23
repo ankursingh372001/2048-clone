@@ -134,8 +134,11 @@ body {
 }
 
 @keyframes show {
-	0% {
-		opacity: 0.5;
+	from {
 		transform: scale(0);
+	}
+
+	to {
+		transform: scale(1);
 	}
 }
