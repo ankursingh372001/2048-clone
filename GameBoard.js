@@ -42,7 +42,7 @@ export default class GameBoard {
 	// Description = get score from local storage
 	getScoreFromLocalStorage(key) {
 		if (localStorage.getItem(key) == null) {
-			localStorage.setItem(key, 0);
+			localStorage.setItem(key, toString(0));
 		}
 
 		return parseInt(localStorage.getItem(key));
@@ -50,9 +50,8 @@ export default class GameBoard {
 
 	// Description = set score in local storage
 	setScoreInLocalStorage(key, value) {
-
-		if(localStorage.getItem(key) == null) {
-			localStorage.setItem(key) = 0;
+		if (localStorage.getItem(key) == null) {
+			localStorage.setItem(key, toString(0));
 		}
 
 		localStorage.setItem(key, toString(value));
@@ -122,11 +121,9 @@ export default class GameBoard {
 		const n = this.#gridSize;
 
 		for (let r = 0; r < this.#gridSize; ++r) {
-			
 			let t = 0; // from column 0 to t - 1 you cannot merge any tiles
 
 			for (let c = 1; c < n; ++c) {
-
 				if (cells[r][c].tile == null) continue;
 
 				let C = c; // column number of cell where current tile can be moved
@@ -157,31 +154,23 @@ export default class GameBoard {
 	}
 
 	moveTilesMethodUpdate(cells) {
-
 		for (let r = 0; r < this.#gridSize; ++r) {
-			
 			for (let c = 1; c < this.#gridSize.size(); ++c) {
-
 				if (cells[r][c].tile == null) continue;
 
 				let newColumn = c; // stores new column index of current tile
-				let willSlide = false; // stores will current tile will slide 
+				let willSlide = false; // stores will current tile will slide
 				let willMerge = false; // stores will current tile will merge with another tile
-				
-				for(let t = c - 1; t >= 0; --t) {
-					
-					if(cells[r][t].tile == null) {
+
+				for (let t = c - 1; t >= 0; --t) {
+					if (cells[r][t].tile == null) {
 						newColumn = t;
 						willSlide = true;
-					}
-					else if(cells[r][t].newTile == null && cells[r][t].tile.data == cells[r][c].tile.data) {
-
+					} else if (cells[r][t].newTile == null && cells[r][t].tile.data == cells[r][c].tile.data) {
 						newColumn = t;
 						willSlide = true;
 						willMerge = true;
-					}
-					else {
-
+					} else {
 						break;
 					}
 				}
