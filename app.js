@@ -16,33 +16,31 @@ function handleInput(e) {
 			return;
 		}
 
-		gameBoard.moveUp();
+		gameBoard.slideUp();
 	} else if (e.key === "ArrowDown") {
 		if (!gameBoard.canSlideDown()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.moveDown();
+		gameBoard.slideDown();
 	} else if (e.key === "ArrowLeft") {
 		if (!gameBoard.canSlideLeft()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.moveLeft();
+		gameBoard.slideLeft();
 	} else if (e.key === "ArrowRight") {
 		if (!gameBoard.canSlideRight()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.moveRight();
+		gameBoard.slideRight();
 	}
 
 	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
-
-	document.querySelector("#current-score").querySelector(".score-value").textContent = gameBoard.currentScore;
 
 	if (!gameBoard.canSlideUp() && !gameBoard.canSlideDown() && !gameBoard.canSlideLeft() && !gameBoard.canSlideRight()) {
 		alert("game over");

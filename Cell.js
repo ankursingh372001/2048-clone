@@ -4,8 +4,8 @@ export default class Cell {
 	#cellElement;
 	#row;
 	#col;
-	#newTile;
 	#tile;
+	#isUpdated;
 
 	constructor(gameBoardElement, row, col) {
 		// create a cell
@@ -19,6 +19,15 @@ export default class Cell {
 		this.#row = row;
 		this.#col = col;
 		this.#tile = null;
+		this.#isUpdated = false;
+	}
+
+	get isUpdated() {
+		return this.#isUpdated;
+	}
+
+	set isUpdated(value) {
+		this.#isUpdated = value;
 	}
 
 	get cell() {

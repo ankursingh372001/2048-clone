@@ -17,7 +17,7 @@ export default class GameBoard {
 
 		// set gameboard dimension and create cells
 		this.#gridSize = 4;
-		this.createCells();
+		this.#createCells();
 
 		// set current score from local storage
 		this.#currentScore = this.getScoreFromLocalStorage("currentScore");
@@ -28,8 +28,8 @@ export default class GameBoard {
 		this.#bestScoreElement.textContent = this.#bestScore;
 	}
 
-	// Descripttion = create cells
-	createCells() {
+	// Description = create cells
+	#createCells() {
 		this.#cells = Array.from(Array(this.#gridSize), () => new Array(this.#gridSize));
 
 		for (let r = 0; r < this.#gridSize; ++r) {
@@ -41,8 +41,8 @@ export default class GameBoard {
 
 	// Description = get score from local storage
 	getScoreFromLocalStorage(key) {
-		if (localStorage.getItem(key) == null) {
-			localStorage.setItem(key, toString(0));
+		if (!localStorage.getItem(key)) {
+			localStorage.setItem(key, "0");
 		}
 
 		return parseInt(localStorage.getItem(key));
@@ -50,10 +50,6 @@ export default class GameBoard {
 
 	// Description = set score in local storage
 	setScoreInLocalStorage(key, value) {
-		if (localStorage.getItem(key) == null) {
-			localStorage.setItem(key, toString(0));
-		}
-
 		localStorage.setItem(key, toString(value));
 	}
 
@@ -84,7 +80,7 @@ export default class GameBoard {
 	}
 
 	// Description = it will check if it is possible to slide at least one tile to left
-	canSlideUtil(cells) {
+	#canSlideUtil(cells) {
 		for (let r = 0; r < this.#gridSize; ++r) {
 			for (let c = 1; c < this.#gridSize; ++c) {
 				if (cells[r][c].tile == null) continue;
@@ -97,65 +93,29 @@ export default class GameBoard {
 	}
 
 	canSlideLeft() {
-		const cells = this.rotateGameBoard(this.#cells, 0);
-		return this.canSlideUtil(cells);
+		const cells = this.#rotateGameboard(this.#cells, 0);
+		return this.#canSlideUtil(cells);
 	}
 
 	canSlideDown() {
-		const cells = this.rotateGameBoard(this.#cells, 1);
-		return this.canSlideUtil(cells);
+		const cells = this.#rotateGameboard(this.#cells, 1);
+		return this.#canSlideUtil(cells);
 	}
 
 	canSlideRight() {
-		const cells = this.rotateGameBoard(this.#cells, 2);
-		return this.canSlideUtil(cells);
+		const cells = this.#rotateGameboard(this.#cells, 2);
+		return this.#canSlideUtil(cells);
 	}
 
 	canSlideUp() {
-		const cells = this.rotateGameBoard(this.#cells, 3);
-		return this.canSlideUtil(cells);
+		const cells = this.#rotateGameboard(this.#cells, 3);
+		return this.#canSlideUtil(cells);
 	}
 
-	// it will move tiles to left
-	moveTiles(cells) {
-		const n = this.#gridSize;
-
+	// Description = It will slide and merge tiles to left wherever possible
+	#slideTilesUtil(cells) {
 		for (let r = 0; r < this.#gridSize; ++r) {
-			let t = 0; // from column 0 to t - 1 you cannot merge any tiles
-
-			for (let c = 1; c < n; ++c) {
-				if (cells[r][c].tile == null) continue;
-
-				let C = c; // column number of cell where current tile can be moved
-				let willMerge = false; // it tracks whether current will be merged with another tile
-
-				for (let j = c - 1; j >= t; --j) {
-					if (cells[r][j].tile == null) {
-						C = j;
-						continue;
-					}
-
-					if (cells[r][c].tile.data == cells[r][j].tile.data) {
-						C = j;
-						willMerge = true;
-					}
-
-					break;
-				}
-
-				if (willMerge) t = C + 1;
-				else t = C;
-
-				if (C == c) continue;
-
-				this.slideTile(cells[r][c], cells[r][C]);
-			}
-		}
-	}
-
-	moveTilesMethodUpdate(cells) {
-		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 1; c < this.#gridSize.size(); ++c) {
+			for (let c = 1; c < this.#gridSize; ++c) {
 				if (cells[r][c].tile == null) continue;
 
 				let newColumn = c; // stores new column index of current tile
@@ -166,7 +126,7 @@ export default class GameBoard {
 					if (cells[r][t].tile == null) {
 						newColumn = t;
 						willSlide = true;
-					} else if (cells[r][t].newTile == null && cells[r][t].tile.data == cells[r][c].tile.data) {
+					} else if (cells[r][t].isUpdated == false && cells[r][t].tile.data == cells[r][c].tile.data) {
 						newColumn = t;
 						willSlide = true;
 						willMerge = true;
@@ -175,54 +135,69 @@ export default class GameBoard {
 					}
 				}
 
-				this.slideTile(cells[r][c], cells[r][newColumn]);
+				let oldCell = cells[r][c];
+				let newCell = cells[r][newColumn];
+
+				if (willMerge) {
+					this.#currentScore += oldCell.tile.data;
+					this.#currentScore += newCell.tile.data;
+
+					newCell.tile.data *= 2;
+					oldCell.tile.tileElement.remove();
+					oldCell.tile = null;
+					newCell.isUpdated = true;
+				} else if (willSlide) {
+					newCell.tile = oldCell.tile;
+					oldCell.tile = null;
+				}
 			}
 		}
-	}
 
-	slideTile(oldCell, newCell) {
-		// if you are moving the tile to empty cell
-		if (newCell.tile == null) {
-			newCell.tile = oldCell.tile;
-			oldCell.tile = null;
-			return;
+		for (let r = 0; r < this.#gridSize; ++r) {
+			for (let c = 0; c < this.#gridSize; ++c) {
+				if (cells[r][c].isUpdated) {
+					cells[r][c].isUpdated = false;
+				}
+			}
 		}
 
-		// if you are moving the tile to a cell with same data
-		let data = newCell.tile.data + oldCell.tile.data;
-		newCell.tile.data = data;
-		this.#currentScore += data;
-		oldCell.tile.tileElement.remove();
-		oldCell.tile = null;
+		this.#currentScoreElement.textContent = this.#currentScore;
+		this.setScoreInLocalStorage("currentScore", this.#currentScore);
+
+		if (this.#bestScore < this.#currentScore) {
+			this.#bestScore = this.#currentScore;
+			this.#bestScoreElement.textContent = this.#bestScore;
+			this.setScoreInLocalStorage("bestScore", this.#bestScore);
+		}
 	}
 
-	moveLeft() {
-		const cells = this.rotateGameBoard(this.#cells, 0);
-		this.moveTiles(cells);
+	slideLeft() {
+		const cells = this.#rotateGameboard(this.#cells, 0);
+		this.#slideTilesUtil(cells);
 	}
 
-	moveDown() {
-		const cells = this.rotateGameBoard(this.#cells, 1);
-		this.moveTiles(cells);
+	slideDown() {
+		const cells = this.#rotateGameboard(this.#cells, 1);
+		this.#slideTilesUtil(cells);
 	}
 
-	moveRight() {
-		const cells = this.rotateGameBoard(this.#cells, 2);
-		this.moveTiles(cells);
+	slideRight() {
+		const cells = this.#rotateGameboard(this.#cells, 2);
+		this.#slideTilesUtil(cells);
 	}
 
-	moveUp() {
-		const cells = this.rotateGameBoard(this.#cells, 3);
-		this.moveTiles(cells);
+	slideUp() {
+		const cells = this.#rotateGameboard(this.#cells, 3);
+		this.#slideTilesUtil(cells);
 	}
 
-	// rotate gameboard by 90 degrees * count times clockwise
-	rotateGameBoard(cells, count) {
+	// Description = rotate gameboard by 90 degrees * count times clockwise
+	#rotateGameboard(cells, count) {
 		if (count === 0) return cells;
 
 		const n = this.#gridSize;
 		cells = cells.map((row, i) => row.map((cell, j) => cells[n - 1 - j][i]));
 
-		return this.rotateGameBoard(cells, count - 1);
+		return this.#rotateGameboard(cells, count - 1);
 	}
 }
