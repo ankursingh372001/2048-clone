@@ -10,79 +10,84 @@ export default class GameBoard {
 	#bestScore;
 
 	constructor() {
-		// store reference of required html elements
 		this.#gameBoardElement = document.getElementById("game-board");
 		this.#currentScoreElement = document.querySelector("#current-score .score-value");
 		this.#bestScoreElement = document.querySelector("#best-score .score-value");
-
-		// set gameboard dimension and create cells
 		this.#gridSize = 4;
-		this.#createCells();
+		this.createCells();
 
-		// set current score from local storage
-		this.#currentScore = this.getScoreFromLocalStorage("currentScore");
+		this.#currentScore = 0;
 		this.#currentScoreElement.textContent = this.#currentScore;
 
 		// set best score from local storage
-		this.#bestScore = this.getScoreFromLocalStorage("bestScore");
+		if (localStorage.getItem("bestScore")) {
+			this.#bestScore = parseInt(localStorage.getItem("bestScore"));
+		} else {
+			this.#bestScore = 0;
+			localStorage.setItem("bestScore", "" + this.#bestScore);
+		}
+
 		this.#bestScoreElement.textContent = this.#bestScore;
 	}
 
-	// Description = create cells
-	#createCells() {
-		this.#cells = Array.from(Array(this.#gridSize), () => new Array(this.#gridSize));
+	createCells() {
+		const n = this.#gridSize;
+		const cells = new Array(n);
 
 		for (let r = 0; r < this.#gridSize; ++r) {
+			cells[r] = new Array(n);
+
 			for (let c = 0; c < this.#gridSize; ++c) {
-				this.#cells[r][c] = new Cell(this.#gameBoardElement, r, c);
+				cells[r][c] = new Cell(this.#gameBoardElement, r, c);
 			}
 		}
+
+		this.#cells = cells;
 	}
 
-	// Description = get score from local storage
-	getScoreFromLocalStorage(key) {
-		if (!localStorage.getItem(key)) {
-			localStorage.setItem(key, "0");
-		}
-
-		return parseInt(localStorage.getItem(key));
-	}
-
-	// Description = set score in local storage
-	setScoreInLocalStorage(key, value) {
-		localStorage.setItem(key, toString(value));
-	}
-
-	// Description = get a random empty cell
 	getRandomEmptyCell() {
+		const n = this.#gridSize;
+		const cells = this.#cells;
+
 		const emptycells = [].concat(...this.#cells).filter(cell => cell.tile == null);
+
+		for (let r = 0; r < n; ++r) {
+			for (let c = 0; c < n; ++c) {
+				if (cells[r][c].tile === null) {
+					emptycells.push(cells[r][c]);
+				}
+			}
+		}
 
 		if (emptycells.length == 0) return null;
 
-		const randomIndex = Math.floor(Math.random() * emptycells.length);
-		return emptycells[randomIndex];
+		return emptycells[Math.floor(Math.random() * emptycells.length)];
 	}
 
-	// Description = initialize new game when user clicks on new game button
 	initNewGame() {
+		const n = this.#gridSize;
+		const cells = this.#cells;
+
 		localStorage.setItem("currentScore", 0);
 		this.#currentScore = parseInt(localStorage.getItem("currentScore"));
 		this.#currentScoreElement.textContent = this.#currentScore;
 
-		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 0; c < this.#gridSize; ++c) {
-				if (this.#cells[r][c].tile) {
-					this.#cells[r][c].tile.tileElement.remove();
-					this.#cells[r][c].tile = null;
+		for (let r = 0; r < n; ++r) {
+			for (let c = 0; c < n; ++c) {
+				if (cells[r][c].tile) {
+					cells[r][c].tile.tileElement.remove();
+					cells[r][c].tile = null;
 				}
 			}
 		}
 	}
 
-	// Description = it will check if it is possible to slide at least one tile to left
-	#canSlideUtil(cells) {
-		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 1; c < this.#gridSize; ++c) {
+	// canSlideUtil will check if it is possible to slide at least one tile to left
+	canSlideUtil(cells) {
+		const n = this.#gridSize;
+
+		for (let r = 0; r < n; ++r) {
+			for (let c = 1; c < n; ++c) {
 				if (cells[r][c].tile == null) continue;
 				if (cells[r][c - 1].tile === null) return true;
 				if (cells[r][c - 1].tile.data === cells[r][c].tile.data) return true;
@@ -93,29 +98,31 @@ export default class GameBoard {
 	}
 
 	canSlideLeft() {
-		const cells = this.#rotateGameboard(this.#cells, 0);
-		return this.#canSlideUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 0);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideDown() {
-		const cells = this.#rotateGameboard(this.#cells, 1);
-		return this.#canSlideUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 1);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideRight() {
-		const cells = this.#rotateGameboard(this.#cells, 2);
-		return this.#canSlideUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 2);
+		return this.canSlideUtil(cells);
 	}
 
 	canSlideUp() {
-		const cells = this.#rotateGameboard(this.#cells, 3);
-		return this.#canSlideUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 3);
+		return this.canSlideUtil(cells);
 	}
 
-	// Description = It will slide and merge tiles to left wherever possible
-	#slideTilesUtil(cells) {
-		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 1; c < this.#gridSize; ++c) {
+	// sllide tiles util will slide and merge tiles to the left wherever possible
+	slideTilesUtil(cells) {
+		const n = this.#gridSize;
+
+		for (let r = 0; r < n; ++r) {
+			for (let c = 1; c < n; ++c) {
 				if (cells[r][c].tile == null) continue;
 
 				let newColumn = c; // stores new column index of current tile
@@ -126,7 +133,7 @@ export default class GameBoard {
 					if (cells[r][t].tile == null) {
 						newColumn = t;
 						willSlide = true;
-					} else if (cells[r][t].isUpdated == false && cells[r][t].tile.data == cells[r][c].tile.data) {
+					} else if (cells[r][t].mergeTile == null && cells[r][t].tile.data == cells[r][c].tile.data) {
 						newColumn = t;
 						willSlide = true;
 						willMerge = true;
@@ -139,13 +146,8 @@ export default class GameBoard {
 				let newCell = cells[r][newColumn];
 
 				if (willMerge) {
-					this.#currentScore += oldCell.tile.data;
-					this.#currentScore += newCell.tile.data;
-
-					newCell.tile.data *= 2;
-					oldCell.tile.tileElement.remove();
+					newCell.mergeTile = oldCell.tile;
 					oldCell.tile = null;
-					newCell.isUpdated = true;
 				} else if (willSlide) {
 					newCell.tile = oldCell.tile;
 					oldCell.tile = null;
@@ -153,51 +155,53 @@ export default class GameBoard {
 			}
 		}
 
-		for (let r = 0; r < this.#gridSize; ++r) {
-			for (let c = 0; c < this.#gridSize; ++c) {
-				if (cells[r][c].isUpdated) {
-					cells[r][c].isUpdated = false;
+		for (let r = 0; r < n; ++r) {
+			for (let c = 0; c < n; ++c) {
+				if (cells[r][c].mergeTile) {
+					cells[r][c].mergeTile.tileElement.remove();
+					cells[r][c].mergeTile = null;
+					cells[r][c].tile.data = 2 * cells[r][c].tile.data;
+					this.#currentScore += cells[r][c].tile.data;
 				}
 			}
 		}
 
 		this.#currentScoreElement.textContent = this.#currentScore;
-		this.setScoreInLocalStorage("currentScore", this.#currentScore);
 
 		if (this.#bestScore < this.#currentScore) {
 			this.#bestScore = this.#currentScore;
 			this.#bestScoreElement.textContent = this.#bestScore;
-			this.setScoreInLocalStorage("bestScore", this.#bestScore);
+			localStorage.setItem("bestScore", "" + this.#bestScore);
 		}
 	}
 
 	slideLeft() {
-		const cells = this.#rotateGameboard(this.#cells, 0);
-		this.#slideTilesUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 0);
+		this.slideTilesUtil(cells);
 	}
 
 	slideDown() {
-		const cells = this.#rotateGameboard(this.#cells, 1);
-		this.#slideTilesUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 1);
+		this.slideTilesUtil(cells);
 	}
 
 	slideRight() {
-		const cells = this.#rotateGameboard(this.#cells, 2);
-		this.#slideTilesUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 2);
+		this.slideTilesUtil(cells);
 	}
 
 	slideUp() {
-		const cells = this.#rotateGameboard(this.#cells, 3);
-		this.#slideTilesUtil(cells);
+		const cells = this.rotateGameboard(this.#cells, 3);
+		this.slideTilesUtil(cells);
 	}
 
-	// Description = rotate gameboard by 90 degrees * count times clockwise
-	#rotateGameboard(cells, count) {
+	// rotateGameboard will rotate a gameboard by 90 * count degrees colockwise
+	rotateGameboard(cells, count) {
 		if (count === 0) return cells;
 
 		const n = this.#gridSize;
 		cells = cells.map((row, i) => row.map((cell, j) => cells[n - 1 - j][i]));
 
-		return this.#rotateGameboard(cells, count - 1);
+		return this.rotateGameboard(cells, count - 1);
 	}
 }

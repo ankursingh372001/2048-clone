@@ -5,7 +5,7 @@ export default class Cell {
 	#row;
 	#col;
 	#tile;
-	#isUpdated;
+	#mergeTile;
 
 	constructor(gameBoardElement, row, col) {
 		// create a cell
@@ -19,15 +19,7 @@ export default class Cell {
 		this.#row = row;
 		this.#col = col;
 		this.#tile = null;
-		this.#isUpdated = false;
-	}
-
-	get isUpdated() {
-		return this.#isUpdated;
-	}
-
-	set isUpdated(value) {
-		this.#isUpdated = value;
+		this.#mergeTile = null;
 	}
 
 	get cell() {
@@ -48,6 +40,19 @@ export default class Cell {
 
 	set tile(tile) {
 		this.#tile = tile;
+
+		if (tile == null) return;
+
+		tile.row = this.#row;
+		tile.col = this.#col;
+	}
+
+	get mergeTile() {
+		return this.#mergeTile;
+	}
+
+	set mergeTile(tile) {
+		this.#mergeTile = tile;
 
 		if (tile == null) return;
 
