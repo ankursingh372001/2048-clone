@@ -7,22 +7,19 @@ export default class Cell {
 	#tile;
 	#mergeTile;
 
-	constructor(gameBoardElement, row, col) {
+	constructor() {
 		// create a cell
 		this.#cellElement = document.createElement("div");
 		this.#cellElement.classList.add("cell");
 
-		// add cell element to gameboard
-		gameBoardElement.appendChild(this.#cellElement);
-
 		// add some properties to cell
-		this.#row = row;
-		this.#col = col;
+		this.#row = -1;
+		this.#col = -1;
 		this.#tile = null;
 		this.#mergeTile = null;
 	}
 
-	get cell() {
+	get cellElement() {
 		return this.#cellElement;
 	}
 
@@ -30,8 +27,16 @@ export default class Cell {
 		return this.#row;
 	}
 
+	set row(val) {
+		this.#row = val;
+	}
+
 	get col() {
 		return this.#col;
+	}
+
+	set col(val) {
+		this.#col = val;
 	}
 
 	get tile() {

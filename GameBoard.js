@@ -14,31 +14,27 @@ export default class GameBoard {
 		this.#currentScoreElement = document.querySelector("#current-score .score-value");
 		this.#bestScoreElement = document.querySelector("#best-score .score-value");
 		this.#gridSize = 4;
+
 		this.createCells();
-
-		this.#currentScore = 0;
-		this.#currentScoreElement.textContent = this.#currentScore;
-
-		// set best score from local storage
-		if (localStorage.getItem("bestScore")) {
-			this.#bestScore = parseInt(localStorage.getItem("bestScore"));
-		} else {
-			this.#bestScore = 0;
-			localStorage.setItem("bestScore", "" + this.#bestScore);
-		}
-
-		this.#bestScoreElement.textContent = this.#bestScore;
+		this.initNewGame();
 	}
 
 	createCells() {
+		const gameBoardElement = this.#gameBoardElement;
 		const n = this.#gridSize;
+
 		const cells = new Array(n);
 
-		for (let r = 0; r < this.#gridSize; ++r) {
+		for (let r = 0; r < n; ++r) {
 			cells[r] = new Array(n);
 
-			for (let c = 0; c < this.#gridSize; ++c) {
-				cells[r][c] = new Cell(this.#gameBoardElement, r, c);
+			for (let c = 0; c < n; ++c) {
+				const cell = new Cell();
+
+				gameBoardElement.appendChild(cell.cellElement);
+				cell.row = r;
+				cell.col = c;
+				cells[r][c] = cell;
 			}
 		}
 
@@ -49,7 +45,7 @@ export default class GameBoard {
 		const n = this.#gridSize;
 		const cells = this.#cells;
 
-		const emptycells = [].concat(...this.#cells).filter(cell => cell.tile == null);
+		const emptycells = [];
 
 		for (let r = 0; r < n; ++r) {
 			for (let c = 0; c < n; ++c) {
@@ -68,9 +64,19 @@ export default class GameBoard {
 		const n = this.#gridSize;
 		const cells = this.#cells;
 
-		localStorage.setItem("currentScore", 0);
-		this.#currentScore = parseInt(localStorage.getItem("currentScore"));
+		// set current score
+		this.#currentScore = 0;
 		this.#currentScoreElement.textContent = this.#currentScore;
+
+		// fetch best score from local storage
+		if (localStorage.getItem("bestScore")) {
+			this.#bestScore = parseInt(localStorage.getItem("bestScore"));
+		} else {
+			this.#bestScore = 0;
+			localStorage.setItem("bestScore", "" + this.#bestScore);
+		}
+
+		this.#bestScoreElement.textContent = this.#bestScore;
 
 		for (let r = 0; r < n; ++r) {
 			for (let c = 0; c < n; ++c) {
@@ -117,7 +123,7 @@ export default class GameBoard {
 		return this.canSlideUtil(cells);
 	}
 
-	// sllide tiles util will slide and merge tiles to the left wherever possible
+	// slide tiles util will slide and merge tiles to the left wherever possible
 	slideTilesUtil(cells) {
 		const n = this.#gridSize;
 
@@ -125,7 +131,7 @@ export default class GameBoard {
 			for (let c = 1; c < n; ++c) {
 				if (cells[r][c].tile == null) continue;
 
-				let newColumn = c; // stores new column index of current tile
+				let newColumn = c; // stores new column value of current tile
 				let willSlide = false; // stores will current tile will slide
 				let willMerge = false; // stores will current tile will merge with another tile
 

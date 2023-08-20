@@ -50,8 +50,8 @@ function handleInput(e) {
 }
 
 function setupInput() {
-	// add even listener only once
-	// because once a key is pressed do not perform any action on any other key press unless all animations and calculations are finished.
+	// add even listener only once because once a valid key is pressed
+	// do not perform any action on any other key press unless all animations and calculations are finished.
 	window.addEventListener("keydown", handleInput, { once: true });
 }
 
