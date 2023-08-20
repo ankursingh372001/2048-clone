@@ -9,35 +9,35 @@ gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 
 setupInput();
 
-function handleInput(e) {
+async function handleInput(e) {
 	if (e.key === "ArrowUp") {
 		if (!gameBoard.canSlideUp()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.slideUp();
+		await gameBoard.slideUp();
 	} else if (e.key === "ArrowDown") {
 		if (!gameBoard.canSlideDown()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.slideDown();
+		await gameBoard.slideDown();
 	} else if (e.key === "ArrowLeft") {
 		if (!gameBoard.canSlideLeft()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.slideLeft();
+		await gameBoard.slideLeft();
 	} else if (e.key === "ArrowRight") {
 		if (!gameBoard.canSlideRight()) {
 			setupInput();
 			return;
 		}
 
-		gameBoard.slideRight();
+		await gameBoard.slideRight();
 	}
 
 	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);

@@ -124,7 +124,9 @@ export default class GameBoard {
 	}
 
 	// slide tiles util will slide and merge tiles to the left wherever possible
-	slideTilesUtil(cells) {
+	async slideTilesUtil(cells) {
+		const promises = [];
+
 		const n = this.#gridSize;
 
 		for (let r = 0; r < n; ++r) {
@@ -153,6 +155,20 @@ export default class GameBoard {
 
 				if (willMerge) {
 					newCell.mergeTile = oldCell.tile;
+
+					const p = new Promise(resolve => {
+						oldCell.tile.tileElement.addEventListener("transitionend", resolve, { once: true });
+					});
+
+					p.then(() => {
+						newCell.mergeTile.tileElement.remove();
+						newCell.mergeTile = null;
+						newCell.tile.data = 2 * newCell.tile.data;
+						this.#currentScore += newCell.tile.data;
+					});
+
+					promises.push(p);
+
 					oldCell.tile = null;
 				} else if (willSlide) {
 					newCell.tile = oldCell.tile;
@@ -161,16 +177,18 @@ export default class GameBoard {
 			}
 		}
 
-		for (let r = 0; r < n; ++r) {
-			for (let c = 0; c < n; ++c) {
-				if (cells[r][c].mergeTile) {
-					cells[r][c].mergeTile.tileElement.remove();
-					cells[r][c].mergeTile = null;
-					cells[r][c].tile.data = 2 * cells[r][c].tile.data;
-					this.#currentScore += cells[r][c].tile.data;
-				}
-			}
-		}
+		await Promise.all(promises);
+
+		// for (let r = 0; r < n; ++r) {
+		// 	for (let c = 0; c < n; ++c) {
+		// 		if (cells[r][c].mergeTile) {
+		// 			cells[r][c].mergeTile.tileElement.remove();
+		// 			cells[r][c].mergeTile = null;
+		// 			cells[r][c].tile.data = 2 * cells[r][c].tile.data;
+		// 			this.#currentScore += cells[r][c].tile.data;
+		// 		}
+		// 	}
+		// }
 
 		this.#currentScoreElement.textContent = this.#currentScore;
 
