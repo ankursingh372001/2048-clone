@@ -1,4 +1,5 @@
 import Cell from "./Cell.js";
+import Tile from "./Tile.js";
 
 export default class GameBoard {
 	#gameBoardElement;
@@ -68,7 +69,7 @@ export default class GameBoard {
 		this.#currentScore = 0;
 		this.#currentScoreElement.textContent = this.#currentScore;
 
-		// fetch best score from local storage
+		// get best score from local storage
 		if (localStorage.getItem("bestScore")) {
 			this.#bestScore = parseInt(localStorage.getItem("bestScore"));
 		} else {
@@ -86,6 +87,10 @@ export default class GameBoard {
 				}
 			}
 		}
+
+		// create two tiles
+		this.getRandomEmptyCell().tile = new Tile(this.#gameBoardElement);
+		this.getRandomEmptyCell().tile = new Tile(this.#gameBoardElement);
 	}
 
 	// canSlideUtil will check if it is possible to slide at least one tile to left
@@ -124,9 +129,7 @@ export default class GameBoard {
 	}
 
 	// slide tiles util will slide and merge tiles to the left wherever possible
-	async slideTilesUtil(cells) {
-		const promises = [];
-
+	slideTilesUtil(cells) {
 		const n = this.#gridSize;
 
 		for (let r = 0; r < n; ++r) {
@@ -156,18 +159,12 @@ export default class GameBoard {
 				if (willMerge) {
 					newCell.mergeTile = oldCell.tile;
 
-					const p = new Promise(resolve => {
-						oldCell.tile.tileElement.addEventListener("transitionend", resolve, { once: true });
-					});
-
-					p.then(() => {
+					oldCell.tile.tileElement.addEventListener("transitionend", () => {
 						newCell.mergeTile.tileElement.remove();
 						newCell.mergeTile = null;
 						newCell.tile.data = 2 * newCell.tile.data;
 						this.#currentScore += newCell.tile.data;
 					});
-
-					promises.push(p);
 
 					oldCell.tile = null;
 				} else if (willSlide) {
@@ -176,19 +173,6 @@ export default class GameBoard {
 				}
 			}
 		}
-
-		await Promise.all(promises);
-
-		// for (let r = 0; r < n; ++r) {
-		// 	for (let c = 0; c < n; ++c) {
-		// 		if (cells[r][c].mergeTile) {
-		// 			cells[r][c].mergeTile.tileElement.remove();
-		// 			cells[r][c].mergeTile = null;
-		// 			cells[r][c].tile.data = 2 * cells[r][c].tile.data;
-		// 			this.#currentScore += cells[r][c].tile.data;
-		// 		}
-		// 	}
-		// }
 
 		this.#currentScoreElement.textContent = this.#currentScore;
 

@@ -2,10 +2,7 @@ import GameBoard from "./GameBoard.js";
 import Tile from "./Tile.js";
 
 const gameBoard = new GameBoard();
-
 const gameBoardElement = document.getElementById("game-board");
-gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
-gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 
 setupInput();
 
@@ -16,28 +13,28 @@ async function handleInput(e) {
 			return;
 		}
 
-		await gameBoard.slideUp();
+		gameBoard.slideUp();
 	} else if (e.key === "ArrowDown") {
 		if (!gameBoard.canSlideDown()) {
 			setupInput();
 			return;
 		}
 
-		await gameBoard.slideDown();
+		gameBoard.slideDown();
 	} else if (e.key === "ArrowLeft") {
 		if (!gameBoard.canSlideLeft()) {
 			setupInput();
 			return;
 		}
 
-		await gameBoard.slideLeft();
+		gameBoard.slideLeft();
 	} else if (e.key === "ArrowRight") {
 		if (!gameBoard.canSlideRight()) {
 			setupInput();
 			return;
 		}
 
-		await gameBoard.slideRight();
+		gameBoard.slideRight();
 	}
 
 	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
@@ -58,7 +55,5 @@ function setupInput() {
 const newGameBtnElement = document.querySelector("button.restart-button");
 newGameBtnElement.addEventListener("click", () => {
 	gameBoard.initNewGame();
-	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
-	gameBoard.getRandomEmptyCell().tile = new Tile(gameBoardElement);
 	setupInput();
 });
